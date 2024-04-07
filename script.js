@@ -20,6 +20,8 @@ function createMap() {
 }
 
 function resetMap() {
+
+  lock = false
   document.querySelector('#leaflet-map').remove();
 
   let newMap = document.createElement('div');
