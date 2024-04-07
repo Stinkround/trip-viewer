@@ -39,6 +39,26 @@ function start() {
   let startButton = document.querySelector('#start-button');
   let endButton = document.querySelector('#end-button');
   let resetButton = document.querySelector('#reset-button');
+  let downloadButton = document.querySelector('#download-button');
+
+  downloadButton.addEventListener('click', function () {
+    const object = polyLine.toGeoJSON();
+
+    const objectData = JSON.stringify(object);
+
+    const blob = new Blob([objectData], { type: 'text/plain' });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'my-trip.txt'; // Set the filename
+
+    // Append the link to the DOM
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
 
   resetButton.addEventListener('click', function () {
     resetMap();
