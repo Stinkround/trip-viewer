@@ -4,6 +4,7 @@ var polyLine;
 var tripStarted = false;
 var startingMarker;
 var endingMarker;
+var lock;
 
 function createMap() {
   map = L.map('leaflet-map').setView(
@@ -36,6 +37,11 @@ function start() {
   let endButton = document.querySelector('#end-button');
   let resetButton = document.querySelector('#reset-button');
   let downloadButton = document.querySelector('#download-button');
+  let reviewButton = document.querySelector('#review-button');
+
+  reviewButton.addEventListener('click', function () {
+    window.open('/trip-viewer/overview/trip.html', '_blank');
+  });
 
   downloadButton.addEventListener('click', function () {
     console.log(polyLine);
@@ -78,6 +84,7 @@ function start() {
     } else {
       if (confirm('Are you sure you want to end the trip?')) {
         alert('Ending trip, this might take a moment');
+        lock = true;
         navigator.geolocation.getCurrentPosition((position) => {
           tripStarted = false;
           let location = [position.coords.latitude, position.coords.longitude];
@@ -122,21 +129,13 @@ function success(location) {
     startingMarker = L.marker(position).addTo(map);
     startingMarker.bindPopup('Starting Location');
   } else {
-    tripData.push(position);
-    updateLine();
+    if (!lock) {
+      tripData.push(position);
+      updateLine();
+    }
   }
 }
 
 function updateLine() {
   polyLine = L.polyline(tripData, { color: 'purple', weight: 5 }).addTo(map);
-}
-
-function handleFileSelect(event) {
-  const fileInput = event.target;
-  const file = fileInput.files[0]; // Get the selected file
-
-  if (file) {
-    // Process the file (e.g., read its content or display its name)
-    console.log('Selected file:', file.name.split('.')[1]);
-  }
 }
