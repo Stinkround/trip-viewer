@@ -19,19 +19,15 @@ function createMap() {
 }
 
 function resetMap() {
-  if (startingMarker) {
-    map.removeLayer(startingMarker);
-  }
+  document.querySelector('#leaflet-map').remove();
 
-  if (endingMarker) {
-    map.removeLayer(endingMarker);
-  }
+  let newMap = document.createElement('div');
+  newMap.id = 'leaflet-map';
 
-  if (polyLine) {
-    map.removeLayer(polyLine);
-  }
+  document.querySelector('#map').appendChild(newMap);
+  tripData = [];
 
-  map.setView([38.54786611899099, -100.50853011683593], 5);
+  createMap();
 }
 
 function start() {
@@ -42,17 +38,28 @@ function start() {
   let downloadButton = document.querySelector('#download-button');
 
   downloadButton.addEventListener('click', function () {
+    console.log(polyLine);
     const object = polyLine.toGeoJSON();
+
+    object.properties.created = new Date().getTime();
+    object.properties.start = [
+      startingMarker.getLatLng().lat,
+      startingMarker.getLatLng().lng,
+    ];
+    object.properties.end = [
+      endingMarker.getLatLng().lat,
+      endingMarker.getLatLng().lng,
+    ];
 
     const objectData = JSON.stringify(object);
 
-    const blob = new Blob([objectData], { type: 'text/plain' });
+    const blob = new Blob([objectData], { type: 'application/json' });
 
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'my-trip.txt'; // Set the filename
+    link.download = 'my-trip.geojson'; // Set the filename
 
     // Append the link to the DOM
     document.body.appendChild(link);
@@ -62,7 +69,7 @@ function start() {
 
   resetButton.addEventListener('click', function () {
     resetMap();
-    document.querySelector('#reset').style = 'display: none;';
+    document.querySelector('#after').style = 'display: none;';
   });
 
   endButton.addEventListener('click', function () {
@@ -70,14 +77,16 @@ function start() {
       alert("You cannot end a trip that hasn't started yet.");
     } else {
       if (confirm('Are you sure you want to end the trip?')) {
+        alert('Ending trip, this might take a moment');
         navigator.geolocation.getCurrentPosition((position) => {
+          tripStarted = false;
           let location = [position.coords.latitude, position.coords.longitude];
 
           console.log(location);
           endingMarker = L.marker(location).addTo(map);
           endingMarker.bindPopup('Ending Position');
 
-          document.querySelector('#reset').style = '';
+          document.querySelector('#after').style = '';
         });
       }
     }
@@ -120,4 +129,14 @@ function success(location) {
 
 function updateLine() {
   polyLine = L.polyline(tripData, { color: 'purple', weight: 5 }).addTo(map);
+}
+
+function handleFileSelect(event) {
+  const fileInput = event.target;
+  const file = fileInput.files[0]; // Get the selected file
+
+  if (file) {
+    // Process the file (e.g., read its content or display its name)
+    console.log('Selected file:', file.name.split('.')[1]);
+  }
 }
