@@ -123,7 +123,7 @@ function start() {
 
   startButton.addEventListener('click', function () {
     startTime = new Date().getTime();
-    let locationWatch = navigator.geolocation.watchPosition(success, error, {
+     locationWatch = navigator.geolocation.watchPosition(success, error, {
       maximumAge: 10000, // Cache location for 10 seconds
       timeout: 5000, // Wait up to 5 seconds for location data
       enableHighAccuracy: true, // Request high accuracy location
