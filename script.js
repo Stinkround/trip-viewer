@@ -5,6 +5,7 @@ var tripStarted = false;
 var startingMarker;
 var endingMarker;
 var lock;
+var locationWatch;
 
 var startTime;
 var endTime;
@@ -93,7 +94,9 @@ function start() {
       if (confirm('Are you sure you want to end the trip?')) {
         endTime = new Date().getTime();
         alert('Ending trip, this might take a moment');
-        lock = true;
+
+        navigator.geolocation.clearWatch(locationWatch);
+
         navigator.geolocation.getCurrentPosition(
           (position) => {
             tripStarted = false;
@@ -120,7 +123,7 @@ function start() {
 
   startButton.addEventListener('click', function () {
     startTime = new Date().getTime();
-    navigator.geolocation.watchPosition(success, error, {
+    let locationWatch = navigator.geolocation.watchPosition(success, error, {
       maximumAge: 10000, // Cache location for 10 seconds
       timeout: 5000, // Wait up to 5 seconds for location data
       enableHighAccuracy: true, // Request high accuracy location
@@ -153,10 +156,8 @@ function success(location) {
     startingMarker = L.marker(position).addTo(map);
     startingMarker.bindPopup('Starting Location');
   } else {
-    if (!lock) {
-      tripData.push(position);
-      updateLine();
-    }
+    tripData.push(position);
+    updateLine();
   }
 }
 
