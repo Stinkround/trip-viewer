@@ -6,6 +6,9 @@ var startingMarker;
 var endingMarker;
 var lock;
 
+var startTime;
+var endTime;
+
 function createMap() {
   map = L.map('leaflet-map').setView(
     [38.54786611899099, -100.50853011683593],
@@ -20,8 +23,6 @@ function createMap() {
 }
 
 function resetMap() {
-
-  lock = false
   document.querySelector('#leaflet-map').remove();
 
   let newMap = document.createElement('div');
@@ -42,28 +43,33 @@ function start() {
   let reviewButton = document.querySelector('#review-button');
 
   reviewButton.addEventListener('click', function () {
-    window.open('/trip-viewer/overview/trip.html', '_blank');
+    window.open('/overview/trip.html');
   });
 
   downloadButton.addEventListener('click', function () {
     console.log(polyLine);
     const object = polyLine.toGeoJSON();
 
-    object.properties.created = new Date().getTime();
-    object.properties.start = [
-      startingMarker.getLatLng().lat,
-      startingMarker.getLatLng().lng,
-    ];
-    object.properties.end = [
-      endingMarker.getLatLng().lat,
-      endingMarker.getLatLng().lng,
-    ];
+    object.properties.start = {
+      location: [
+        startingMarker.getLatLng().lat,
+        startingMarker.getLatLng().lng,
+      ],
+      time: startTime,
+    };
+
+    object.properties.end = {
+      location: [endingMarker.getLatLng().lat, endingMarker.getLatLng().lng],
+      time: endTime,
+    };
 
     const objectData = JSON.stringify(object);
 
     const blob = new Blob([objectData], { type: 'application/json' });
 
     const url = URL.createObjectURL(blob);
+
+    console.log(url);
 
     const link = document.createElement('a');
     link.href = url;
@@ -85,24 +91,40 @@ function start() {
       alert("You cannot end a trip that hasn't started yet.");
     } else {
       if (confirm('Are you sure you want to end the trip?')) {
+        endTime = new Date().getTime();
         alert('Ending trip, this might take a moment');
         lock = true;
-        navigator.geolocation.getCurrentPosition((position) => {
-          tripStarted = false;
-          let location = [position.coords.latitude, position.coords.longitude];
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            tripStarted = false;
+            let location = [
+              position.coords.latitude,
+              position.coords.longitude,
+            ];
 
-          console.log(location);
-          endingMarker = L.marker(location).addTo(map);
-          endingMarker.bindPopup('Ending Position');
+            console.log(location);
+            endingMarker = L.marker(location).addTo(map);
+            endingMarker.bindPopup('Ending Position');
 
-          document.querySelector('#after').style = '';
-        });
+            document.querySelector('#after').style = '';
+          },
+          {
+            maximumAge: 10000, // Cache location for 10 seconds
+            timeout: 5000, // Wait up to 5 seconds for location data
+            enableHighAccuracy: true, // Request high accuracy location
+          }
+        );
       }
     }
   });
 
   startButton.addEventListener('click', function () {
-    navigator.geolocation.watchPosition(success, error);
+    startTime = new Date().getTime();
+    navigator.geolocation.watchPosition(success, error, {
+      maximumAge: 10000, // Cache location for 10 seconds
+      timeout: 5000, // Wait up to 5 seconds for location data
+      enableHighAccuracy: true, // Request high accuracy location
+    });
   });
 }
 
