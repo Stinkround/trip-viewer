@@ -1,3 +1,5 @@
+import { layerControls } from "./Layercontrols.js"
+
 var map;
 var tripData = [];
 var polyLine;
@@ -15,12 +17,9 @@ function createMap() {
     [38.54786611899099, -100.50853011683593],
     5
   );
+layerControls.addLayers(map)
+  layerControls.changeDefault("OpenStreetMap", true, map)
 
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution:
-      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
 }
 
 function resetMap() {
